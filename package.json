@@ -1,0 +1,25 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "rest api golang chi sqlx",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/findarip/chi-sqlx.git"
+  },
+  "keywords": [
+    "golang",
+    "chi",
+    "sqlx",
+    "mysql"
+  ],
+  "author": "Arip Sadewa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/findarip/chi-sqlx/issues"
+  },
+  "homepage": "https://github.com/findarip/chi-sqlx#readme"
+}
