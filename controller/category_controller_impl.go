@@ -32,7 +32,16 @@ func (c *CategoryControllerImpl) Create() http.HandlerFunc {
 		err := c.Validate.Struct(categoryCreateRequest)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(utils.GetMessage(err)))
+			erorResponse := web.ErrorResponse{
+				Code:   400,
+				Status: "Bad Request",
+				Errors: []web.WebError{
+					{
+						Message: utils.GetMessage(err),
+					},
+				},
+			}
+			web.WriteToResponseBody(w, erorResponse)
 			return
 		}
 
@@ -62,13 +71,13 @@ func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 		web.ReadFromRequestBody(r, &categoryUpdateRequest)
 		err := c.Validate.Struct(categoryUpdateRequest)
 		if err != nil {
-			w.WriteHeader(utils.GetCode(err))
+			w.WriteHeader(http.StatusBadRequest)
 			erorResponse := web.ErrorResponse{
-				Code:   404,
-				Status: "Not Found",
+				Code:   400,
+				Status: "Bad Request",
 				Errors: []web.WebError{
 					{
-						Message: "Data not found",
+						Message: utils.GetMessage(err),
 					},
 				},
 			}
@@ -105,6 +114,7 @@ func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 
 		categoryResponse, err := c.CategoryService.Update(r.Context(), categoryUpdateRequest)
 		if err != nil {
+
 			w.WriteHeader(utils.GetCode(err))
 			w.Write([]byte(utils.GetMessage(err)))
 			return
@@ -126,7 +136,17 @@ func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 		categoryId := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(categoryId)
 		if err != nil {
-			utils.NotFoundError(err)
+			w.WriteHeader(http.StatusNotFound)
+			erorResponse := web.ErrorResponse{
+				Code:   404,
+				Status: "Not Found",
+				Errors: []web.WebError{
+					{
+						Message: "Data not found",
+					},
+				},
+			}
+			web.WriteToResponseBody(w, erorResponse)
 			return
 		}
 
@@ -162,7 +182,18 @@ func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 		categoryId := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(categoryId)
 		if err != nil {
-			utils.NotFoundError(err)
+			// utils.NotFoundError(err)
+			w.WriteHeader(http.StatusNotFound)
+			erorResponse := web.ErrorResponse{
+				Code:   404,
+				Status: "Not Found",
+				Errors: []web.WebError{
+					{
+						Message: "Data not found",
+					},
+				},
+			}
+			web.WriteToResponseBody(w, erorResponse)
 			return
 		}
 

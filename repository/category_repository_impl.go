@@ -83,26 +83,26 @@ func (r *CategoryRepositoryImpl) FindAll(ctx context.Context, parPage int) ([]*d
 
 	if parPage > 1 {
 		limit := 5
-		q := "SELECT * FROM category"
-		query := fmt.Sprintf("%s LIMIT %d OFFSET %d", q, limit, (parPage-1)*limit)
-		categories := []*domain.Category{}
-		err := r.DB.Select(&categories, query)
+		meta := domain.CategoryMeta{}
+		err := r.DB.Get(&meta.Total, "SELECT COUNT(id) AS total FROM category")
 		if err != nil {
 			return nil, nil, err
 		}
-		meta := domain.CategoryMeta{}
 		var page float64 = meta.Total / float64(limit)
 		total := math.Ceil(page)
-		err = r.DB.Get(&meta.Total, "SELECT COUNT(id) AS total FROM category")
-		if err != nil {
-			return nil, nil, err
-		}
-
 		meta = domain.CategoryMeta{
 			Total:     meta.Total,
 			Page:      parPage,
 			TotalPage: total,
 		}
+		q := "SELECT * FROM category"
+		query := fmt.Sprintf("%s LIMIT %d OFFSET %d", q, limit, (parPage-1)*limit)
+		categories := []*domain.Category{}
+		err = r.DB.Select(&categories, query)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		return categories, &meta, nil
 	} else {
 		limit := 5
