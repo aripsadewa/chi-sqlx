@@ -20,6 +20,7 @@ func ToCategoryResponse(category domain.Category) *CategoryResponse {
 
 func ToCategoryMeta(category domain.CategoryMeta) *MetaData {
 	return &MetaData{
+		Limit:     int(category.Limit),
 		Total:     category.Total,
 		Page:      category.Page,
 		TotalPage: category.TotalPage,
@@ -37,15 +38,6 @@ func AllCategoryResponse(category []*domain.Category) []*CategoryResponse {
 	}
 	return mapData
 }
-
-// func ToCategoryResponseMeta(category domain.CategoryMeta) *CategoryMetaResponse {
-// 	return &CategoryMetaResponse{
-// 		Category: []category.Category,
-// 		Total: category.Total,
-// 		Page: category.Page,
-// 		TotalPage: category.TotalPage,
-// 	}
-// }
 
 type WebResponse struct {
 	Code   int         `json:"code"`
@@ -68,6 +60,7 @@ type CategoryMetaResponse struct {
 }
 
 type MetaData struct {
+	Limit     int     `json:"limit"`
 	Total     float64 `db:"total" json:"total"`
 	Page      int     `db:"page" json:"page"`
 	TotalPage float64 `db:"total_page" json:"total_page"`
@@ -81,6 +74,15 @@ type ErrorResponse struct {
 
 type WebError struct {
 	Message string `json:"message"`
+}
+
+type ParamResponse struct {
+	Page      int `json:"page"`
+	Limit     int `json:"limit"`
+	TotalPage int `json:"total_page"`
+	// Start time.Time `json:"start_date"`
+	// End   time.Time `json:"end_date"`
+	// Sort  string    `json:"sort"`
 }
 
 func WriteToResponseBody(writer http.ResponseWriter, response interface{}) {

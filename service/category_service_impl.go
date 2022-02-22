@@ -36,23 +36,6 @@ func (s *CategoryServiceImpl) Create(ctx context.Context, request web.CategoryCr
 	return res, nil
 }
 
-func (s *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUpdateRequest) (*web.CategoryResponse, error) {
-	category := domain.Category{
-		ID:   request.Id,
-		Name: request.Name,
-	}
-
-	categories, err := s.CategoryRepository.Update(ctx, category)
-
-	if err != nil {
-
-		return nil, utils.UnprocessableEntity(err)
-	}
-
-	res := web.ToCategoryResponse(*categories)
-	return res, nil
-}
-
 func (s *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) (*web.CategoryResponse, error) {
 	category, err := s.CategoryRepository.FindById(ctx, categoryId)
 	if err != nil {
@@ -78,8 +61,30 @@ func (s *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) (strin
 
 }
 
-func (s *CategoryServiceImpl) FindAll(ctx context.Context, parPage int) ([]*web.CategoryResponse, *web.MetaData, error) {
-	categories, metaData, err := s.CategoryRepository.FindAll(ctx, parPage)
+func (s *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUpdateRequest) (*web.CategoryResponse, error) {
+	category := domain.Category{
+		ID:   request.Id,
+		Name: request.Name,
+	}
+	categories, err := s.CategoryRepository.Update(ctx, category)
+
+	if err != nil {
+
+		return nil, utils.UnprocessableEntity(err)
+	}
+
+	res := web.ToCategoryResponse(*categories)
+	return res, nil
+}
+
+func (s *CategoryServiceImpl) FindAll(ctx context.Context, request web.ParamRequest) ([]*web.CategoryResponse, *web.MetaData, error) {
+	param := domain.CategoryMeta{
+		Page:      request.Page,
+		Limit:     float64(request.Limit),
+		Sort:      request.Sort,
+		SortValue: request.SortValue,
+	}
+	categories, metaData, err := s.CategoryRepository.FindAll(ctx, param)
 	if err != nil || metaData == nil {
 		return nil, nil, utils.NotFoundError(err)
 	}

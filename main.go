@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"rest_api/controller"
 	"rest_api/repository"
 	"rest_api/service"
@@ -12,9 +13,24 @@ import (
 	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 )
 
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
 func main() {
+	appConfig := utils.AppConfig{}
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("error on loading .enc file")
+	}
+	appConfig.AppPort = getEnv("APP_PORT", "3000")
 	db, err := sqlx.Connect("mysql", "root:@(localhost:3306)/rest-pzn")
 	if err != nil {
 		log.Fatalln(err)
@@ -36,7 +52,7 @@ func main() {
 	r.Get("/cat", cat.FindAll())
 	// r.With(5).Get()
 
-	err = http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":"+appConfig.AppPort, r)
 	if err != nil {
 		utils.InternalServerError(err)
 	}

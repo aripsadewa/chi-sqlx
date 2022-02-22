@@ -10,5 +10,5 @@ type CategoryRepository interface {
 	Update(ctx context.Context, category domain.Category) (*domain.Category, error)
 	Delete(ctx context.Context, categoryId int) (int, error)
 	FindById(ctx context.Context, categoryId int) (*domain.Category, error)
-	FindAll(ctx context.Context, parPage int) ([]*domain.Category, *domain.CategoryMeta, error)
+	FindAll(ctx context.Context, meta domain.CategoryMeta) ([]*domain.Category, *domain.CategoryMeta, error)
 }
