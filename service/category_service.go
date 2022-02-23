@@ -10,5 +10,5 @@ type CategoryService interface {
 	Update(ctx context.Context, request web.CategoryUpdateRequest) (*web.CategoryResponse, error)
 	FindById(ctx context.Context, categoryId int) (*web.CategoryResponse, error)
 	Delete(ctx context.Context, categoryId int) (string, error)
-	FindAll(ctx context.Context, request web.ParamRequest) ([]*web.CategoryResponse, *web.MetaData, error)
+	FindAll(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.MetaData, error)
 }

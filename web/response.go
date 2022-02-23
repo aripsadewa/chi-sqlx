@@ -20,7 +20,7 @@ func ToCategoryResponse(category domain.Category) *CategoryResponse {
 
 func ToCategoryMeta(category domain.CategoryMeta) *MetaData {
 	return &MetaData{
-		Limit:     int(category.Limit),
+		Limit:     category.Limit,
 		Total:     category.Total,
 		Page:      category.Page,
 		TotalPage: category.TotalPage,
@@ -60,10 +60,10 @@ type CategoryMetaResponse struct {
 }
 
 type MetaData struct {
-	Limit     int     `json:"limit"`
-	Total     float64 `db:"total" json:"total"`
-	Page      int     `db:"page" json:"page"`
-	TotalPage float64 `db:"total_page" json:"total_page"`
+	Limit     float64 `json:"limit"`
+	Total     int     `db:"total" json:"total"`
+	Page      float64 `db:"page" json:"page"`
+	TotalPage int     `db:"total_page" json:"total_page"`
 }
 
 type ErrorResponse struct {

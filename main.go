@@ -52,6 +52,8 @@ func main() {
 	r.Get("/cat", cat.FindAll())
 	// r.With(5).Get()
 
+	log.Println("Running server at port " + appConfig.AppPort)
+
 	err = http.ListenAndServe(":"+appConfig.AppPort, r)
 	if err != nil {
 		utils.InternalServerError(err)

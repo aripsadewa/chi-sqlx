@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"rest_api/model/domain"
+	"rest_api/web"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -45,7 +47,6 @@ func (r *CategoryRepositoryImpl) FindById(ctx context.Context, categoryId int) (
 	if err != nil {
 		return nil, err
 	}
-
 	return &rs, nil
 }
 
@@ -77,47 +78,95 @@ func (r *CategoryRepositoryImpl) Update(ctx context.Context, category domain.Cat
 	return &category, nil
 }
 
-func (r *CategoryRepositoryImpl) FindAll(ctx context.Context, request domain.CategoryMeta) ([]*domain.Category, *domain.CategoryMeta, error) {
-	sort := request.Sort
-	order := ""
-	sortName := ""
-	sortValue := ""
-	limit := request.Limit
-	var parPage float64 = float64(request.Page)
-	var ofset float64 = 0
+func (r *CategoryRepositoryImpl) FindAll(ctx context.Context, request web.GetParamRequest) ([]*domain.Category, *domain.CategoryMeta, error) {
+	var page float64 = 1
+	if request.Page.Valid {
+		page = request.Page.Float64
+	}
+	query, count, totalPage := r.cekParam(request)
 	meta := domain.CategoryMeta{}
-	err := r.DB.Get(&meta.Total, "SELECT COUNT(id) AS total FROM category")
-	if err != nil {
-		return nil, nil, err
-	}
-	var page float64 = meta.Total / float64(limit)
-	total := math.Ceil(page)
-	if parPage > 1 {
-		ofset = (parPage - 1) * limit
-	} else {
-		parPage = 1
-		ofset = 0
-	}
-
 	meta = domain.CategoryMeta{
-		Limit:     limit,
-		Total:     meta.Total,
-		Page:      int(parPage),
-		TotalPage: total,
+		Limit:     request.Limit.Float64,
+		Total:     count,
+		Page:      page,
+		TotalPage: totalPage,
 	}
-	q := "SELECT id,name FROM category"
-	if sort != "" {
-		order = "ORDER BY"
-		sortName = sort
-		sortValue = request.SortValue
-	}
-	query := fmt.Sprintf("%s %s %s %s LIMIT %d OFFSET %d", q, order, sortName, sortValue, int(limit), int(ofset))
+	// fmt.Println("query ", query)
 	categories := []*domain.Category{}
-	err = r.DB.Select(&categories, query)
+	err := r.DB.Select(&categories, query)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return categories, &meta, nil
+}
 
+func (r *CategoryRepositoryImpl) cekParam(request web.GetParamRequest) (string, int, int) {
+	count, _ := r.getCountCategory("select count(id) from category")
+	q := "select id,name from category"
+	startDate, sort, query, queryCount := "", "id", "", ""
+	limit := 5
+	page := 1
+	totalPage := math.Ceil(float64(count) / float64(limit))
+	var offset float64 = (float64(page) - 1) * float64(limit)
+	sortValue := getValueEnv("SORT_CATEGORY_VALUE", "desc")
+	if request.Start.Valid {
+		if !request.End.Valid {
+			var star string = request.Start.Time.String()
+			t := star[0:10]
+			startDate = fmt.Sprintf("where created_at > '%s 00:00:00'", t)
+			queryCount = fmt.Sprintf("select count(id) from category where created_at > '%s 00:00:00'", t)
+			count, _ = r.getCountCategory(queryCount)
+
+		} else {
+			var star string = request.Start.Time.String()
+			var end string = request.End.Time.String()
+			t := star[0:10]
+			t2 := end[0:10]
+			startDate = fmt.Sprintf("where created_at > '%s 00:00:00' and created_at < '%s 00:00:00'", t, t2)
+			queryCount = fmt.Sprintf("select count(id) from category where created_at > '%s 00:00:00' and created_at < '%s 00:00:00'", t, t2)
+			count, _ = r.getCountCategory(queryCount)
+
+		}
+	}
+	if request.Limit.Valid || request.Page.Valid {
+		if request.Limit.Valid && !request.Page.Valid {
+			limit = int(request.Limit.Float64)
+			totalPage = math.Ceil(float64(count) / request.Limit.Float64)
+			offset = float64((page - 1) * limit)
+		}
+		if !request.Limit.Valid && request.Page.Valid {
+			page = int(request.Page.Float64)
+			offset = float64((page - 1) * limit)
+		}
+		limit = int(request.Limit.Float64)
+		page = int(request.Page.Float64)
+		offset = float64((request.Page.Float64 - 1) * request.Limit.Float64)
+	}
+	if request.Sort.Valid {
+		sort = fmt.Sprintf(request.Sort.String)
+	}
+	if request.SortValue.Valid {
+		sortValue = fmt.Sprintf(request.SortValue.String)
+	}
+
+	query = fmt.Sprintf("%s %s Order by %s %s LIMIT %d OFFSET %v", q, startDate, sort, sortValue, limit, offset)
+
+	return query, count, int(totalPage)
+}
+
+func (r *CategoryRepositoryImpl) getCountCategory(q string) (int, error) {
+	count := domain.CategoryMeta{}
+	err := r.DB.Get(&count.Total, q)
+	if err != nil {
+		return 0, err
+	}
+	return count.Total, nil
+}
+
+func getValueEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }

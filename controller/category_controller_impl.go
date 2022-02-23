@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"rest_api/service"
 	"rest_api/utils"
 	"rest_api/web"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/schema"
 )
 
 type CategoryControllerImpl struct {
@@ -250,80 +250,44 @@ func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 
 func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		paramSort := ""
-		paramSortValue := getValueEnv("SORT_VALUE", "asc")
-		paramPage := 1
-		paramLimit := 5
-		paramRequest := web.ParamRequest{}
+		var decoder = schema.NewDecoder()
+		paramRequest := web.GetParamRequest{}
+		err := decoder.Decode(&paramRequest, r.URL.Query())
+		// r.Body.Read()
+		// fmt.Printf("value %s\n", reflect.TypeOf(r.URL.Query()))
+		// fmt.Printf("param %#v\n", paramRequest)
+		// fmt.Printf("param %v\n", paramRequest)
+		// fmt.Printf("param %+v\n", paramRequest)
 
-		if r.URL.Query().Get("page") != "" {
-			page, err := strconv.Atoi(r.URL.Query().Get("page"))
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				erorResponse := web.ErrorResponse{
-					Code:   http.StatusBadRequest,
-					Status: http.StatusText(http.StatusBadRequest),
-					Errors: []web.WebError{
-						{
-							Message: "Param page not int",
-						},
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			erorResponse := web.ErrorResponse{
+				Code:   http.StatusBadRequest,
+				Status: http.StatusText(http.StatusBadRequest),
+				Errors: []web.WebError{
+					{
+						Message: utils.GetMessage(err),
 					},
-				}
-				web.WriteToResponseBody(w, erorResponse)
-				return
+				},
 			}
-
-			paramPage = page
+			web.WriteToResponseBody(w, erorResponse)
+			return
 		}
-		if r.URL.Query().Get("limit") != "" {
-			limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				erorResponse := web.ErrorResponse{
-					Code:   http.StatusBadRequest,
-					Status: http.StatusText(http.StatusBadRequest),
-					Errors: []web.WebError{
-						{
-							Message: "Param limit not int",
-						},
+		err = c.Validate.Struct(paramRequest)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			erorResponse := web.ErrorResponse{
+				Code:   http.StatusBadRequest,
+				Status: http.StatusText(http.StatusBadRequest),
+				Errors: []web.WebError{
+					{
+						Message: utils.GetMessage(err),
 					},
-				}
-				web.WriteToResponseBody(w, erorResponse)
-				return
+				},
 			}
-			paramLimit = limit
+			web.WriteToResponseBody(w, erorResponse)
+			return
 		}
-		if r.URL.Query().Get("sort") != "" {
-			paramSort = r.URL.Query().Get("sort")
-		}
-		if r.URL.Query().Get("sortValue") != "" {
-			paramSortValue = r.URL.Query().Get("sortValue")
-		}
-		// if r.URL.Query().Get("start") != "" {
-		// 	t, err := time.Parse("2006-01-02 15:04:05", r.URL.Query().Get("start")+"00:00:00")
-		// 	if err != nil {
-		// 		w.WriteHeader(http.StatusBadRequest)
-		// 		erorResponse := web.ErrorResponse{
-		// 			Code:   http.StatusBadRequest,
-		// 			Status: http.StatusText(http.StatusBadRequest),
-		// 			Errors: []web.WebError{
-		// 				{
-		// 					Message: "Format Date is Error",
-		// 				},
-		// 			},
-		// 		}
-		// 		web.WriteToResponseBody(w, erorResponse)
-		// 		return
-		// 	}
-		// 	paramStart = t
-		// }
-		paramRequest = web.ParamRequest{
-			Limit:     paramLimit,
-			Page:      paramPage,
-			Sort:      paramSort,
-			SortValue: paramSortValue,
-		}
-
 		categoryResponses, meta, err := c.CategoryService.FindAll(r.Context(), paramRequest)
 		if err != nil {
 			w.WriteHeader(utils.GetCode(err))
@@ -349,11 +313,4 @@ func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 		web.WriteToResponseBody(w, webResponse)
 
 	})
-}
-
-func getValueEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }

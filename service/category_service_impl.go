@@ -77,14 +77,16 @@ func (s *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUp
 	return res, nil
 }
 
-func (s *CategoryServiceImpl) FindAll(ctx context.Context, request web.ParamRequest) ([]*web.CategoryResponse, *web.MetaData, error) {
-	param := domain.CategoryMeta{
-		Page:      request.Page,
-		Limit:     float64(request.Limit),
-		Sort:      request.Sort,
-		SortValue: request.SortValue,
-	}
-	categories, metaData, err := s.CategoryRepository.FindAll(ctx, param)
+func (s *CategoryServiceImpl) FindAll(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.MetaData, error) {
+	// param := domain.CategoryMeta{
+	// 	Start:     request.Start,
+	// 	End:       request.End,
+	// 	Page:      request.Page,
+	// 	Limit:     request.Limit,
+	// 	Sort:      request.Sort,
+	// 	SortValue: request.SortValue,
+	// }
+	categories, metaData, err := s.CategoryRepository.FindAll(ctx, request)
 	if err != nil || metaData == nil {
 		return nil, nil, utils.NotFoundError(err)
 	}

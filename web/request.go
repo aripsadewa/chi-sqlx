@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+
+	"gopkg.in/guregu/null.v4"
 )
 
 type CategoryCreateRequest struct {
@@ -19,13 +21,13 @@ type CategoryUpdateRequest struct {
 	UpdatedAt *time.Time `json:"updated_at"`
 }
 
-type ParamRequest struct {
-	Page  int `validate:"number" json:"page"`
-	Limit int `validate:"number" json:"limit"`
-	// Start time.Time `validate:"datetime"`
-	// End   time.Time `validate:"datetime"`
-	Sort      string `json:"sort"`
-	SortValue string `json:"sort_value"`
+type GetParamRequest struct {
+	Page      null.Float  `validate:"number" json:"page" schema:"page"`
+	Limit     null.Float  `validate:"number" json:"limit" schema:"limit"`
+	Start     null.Time   `validate:"datetime" schema:"start"`
+	End       null.Time   `validate:"datetime" schema:"end"`
+	Sort      null.String `json:"sort" schema:"sort"`
+	SortValue null.String `json:"sort_value" schema:"sort_value"`
 }
 
 func ReadFromRequestBody(request *http.Request, result interface{}) {

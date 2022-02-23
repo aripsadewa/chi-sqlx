@@ -1,6 +1,8 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type Category struct {
 	ID        int       `db:"id"`
@@ -8,11 +10,24 @@ type Category struct {
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
+// type CategoryMeta struct {
+// 	StartDate null.Time   `json:"start_date"`
+// 	EndtDate  null.Time   `json:"end_date"`
+// 	Sort      null.String `json:"sort"`
+// 	SortValue null.String `json:"sort_value"`
+// 	Limit     null.Float  `db:"limit" json:"limit"`
+// 	Total     null.Float  `db:"total" json:"total"`
+// 	Page      null.Float  `db:"page" json:"page"`
+// 	TotalPage null.Float  `db:"total_page" json:"total_page"`
+// }
+
 type CategoryMeta struct {
-	Sort      string  `json:"sort"`
-	SortValue string  `json:"sort_value"`
-	Limit     float64 `db:"limit" json:"limit"`
-	Total     float64 `db:"total" json:"total"`
-	Page      int     `db:"page" json:"page"`
-	TotalPage float64 `db:"total_page" json:"total_page"`
+	Page  float64 `validate:"number" json:"page"`
+	Limit float64 `validate:"number" json:"limit"`
+	// Start     null.Time   `validate:"datetime" schema:"start"`
+	// End       null.Time   `validate:"datetime" schema:"end"`
+	// Sort      null.String `json:"sort" schema:"sort"`
+	// SortValue null.String `json:"sort_value" schema:"sort_value"`
+	Total     int `db:"total" json:"total"`
+	TotalPage int `db:"total_page" json:"total_page"`
 }
