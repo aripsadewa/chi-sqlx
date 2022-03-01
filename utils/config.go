@@ -1,5 +1,34 @@
 package utils
 
+import (
+	"log"
+
+	"github.com/spf13/viper"
+)
+
+var EnvConfigs *AppConfig
+
 type AppConfig struct {
-	AppPort string
+	AppPort           string `mapstructure:"APP_PORT"`
+	SortCategoryValue string `mapstructure:"SORT_CATEGORY_VALUE"`
+}
+
+func InitiEnvConfigs() {
+	EnvConfigs = loadEnvVariables()
+}
+
+func loadEnvVariables() (config *AppConfig) {
+	viper.AddConfigPath(".")
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatal("Error read env file", err)
+	}
+
+	if err := viper.Unmarshal(&config); err != nil {
+		log.Fatal(err)
+	}
+
+	return
 }

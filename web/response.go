@@ -1,92 +1,34 @@
 package web
 
 import (
-	"encoding/json"
-	"net/http"
 	"rest_api/model/domain"
+
+	"gopkg.in/guregu/null.v4"
 )
 
 type CategoryResponse struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+	Id          int         `json:"id"`
+	Name        string      `json:"name"`
+	Description null.String `json:"description"`
 }
 
 func ToCategoryResponse(category domain.Category) *CategoryResponse {
 	return &CategoryResponse{
-		Id:   category.ID,
-		Name: category.Name,
+		Id:          category.ID,
+		Name:        category.Name,
+		Description: category.Description,
 	}
 }
 
-func ToCategoryMeta(category domain.CategoryMeta) *MetaData {
-	return &MetaData{
-		Limit:     category.Limit,
-		Total:     category.Total,
-		Page:      category.Page,
-		TotalPage: category.TotalPage,
-	}
-}
-
-func AllCategoryResponse(category []*domain.Category) []*CategoryResponse {
+func ToCategoriesResponse(category []*domain.Category) []*CategoryResponse {
 	mapData := make([]*CategoryResponse, 0)
 	for _, el := range category {
 		responItem := &CategoryResponse{
-			Id:   el.ID,
-			Name: el.Name,
+			Id:          el.ID,
+			Name:        el.Name,
+			Description: el.Description,
 		}
 		mapData = append(mapData, responItem)
 	}
 	return mapData
-}
-
-type WebResponse struct {
-	Code   int         `json:"code"`
-	Status string      `json:"status"`
-	Data   interface{} `json:"data"`
-}
-
-type GetAllCategory struct {
-	Code     int         `json:"code"`
-	Status   string      `json:"status"`
-	Data     interface{} `json:"data"`
-	MetaData interface{} `json:"meta"`
-}
-
-type CategoryMetaResponse struct {
-	Category  []CategoryResponse `json:"category"`
-	Total     int                `db:"total" json:"total"`
-	Page      int                `db:"page" json:"page"`
-	TotalPage int                `db:"total_page" json:"total_page"`
-}
-
-type MetaData struct {
-	Limit     float64 `json:"limit"`
-	Total     int     `db:"total" json:"total"`
-	Page      float64 `db:"page" json:"page"`
-	TotalPage int     `db:"total_page" json:"total_page"`
-}
-
-type ErrorResponse struct {
-	Code   int        `json:"code"`
-	Status string     `json:"status"`
-	Errors []WebError `json:"errors"`
-}
-
-type WebError struct {
-	Message string `json:"message"`
-}
-
-type ParamResponse struct {
-	Page      int `json:"page"`
-	Limit     int `json:"limit"`
-	TotalPage int `json:"total_page"`
-	// Start time.Time `json:"start_date"`
-	// End   time.Time `json:"end_date"`
-	// Sort  string    `json:"sort"`
-}
-
-func WriteToResponseBody(writer http.ResponseWriter, response interface{}) {
-	writer.Header().Add("Content-Type", "application/json")
-	encoder := json.NewEncoder(writer)
-	encoder.Encode(response)
 }

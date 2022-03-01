@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"math"
-	"os"
+	"rest_api/model"
 	"rest_api/model/domain"
-	"rest_api/web"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -22,7 +22,7 @@ func NewCategoryRepository(DB *sqlx.DB) CategoryRepository {
 }
 
 func (r *CategoryRepositoryImpl) Save(ctx context.Context, category domain.Category) (*domain.Category, error) {
-	query := "INSERT INTO category (name, created_at) VALUES (:name, now())"
+	query := "INSERT INTO category (name,description, created_at) VALUES (:name,:description, now())"
 
 	rs, err := r.DB.NamedExec(query, category)
 
@@ -41,7 +41,7 @@ func (r *CategoryRepositoryImpl) Save(ctx context.Context, category domain.Categ
 }
 
 func (r *CategoryRepositoryImpl) FindById(ctx context.Context, categoryId int) (*domain.Category, error) {
-	query := "SELECT id,name FROM category WHERE id=?"
+	query := "SELECT id,name, description FROM category WHERE id=?"
 	rs := domain.Category{}
 	err := r.DB.Get(&rs, query, categoryId)
 	if err != nil {
@@ -54,119 +54,114 @@ func (r *CategoryRepositoryImpl) Delete(ctx context.Context, categoryId int) (in
 
 	query := "DELETE FROM category WHERE id=?"
 	rs, err := r.DB.Exec(query, categoryId)
+	//true/false
 	affectedId, _ := rs.RowsAffected()
-	if err != nil || int(affectedId) == 0 {
+	if err != nil {
 		return 0, err
+	}
+	if int(affectedId) == 0 {
+		return 0, errors.New("data not found")
 	}
 	return categoryId, nil
 }
 func (r *CategoryRepositoryImpl) Update(ctx context.Context, category domain.Category) (*domain.Category, error) {
-	query := "UPDATE category SET name=:name, updated_at=now() WHERE id=:id"
+	var args []interface{}
+	q, qArgs := r.generateFieldQuery(category)
+	// query := fmt.Sprintf("SELECT id, name, description FROM category %s ORDER BY ? asc LIMIT ? OFFSET ? ", q)
 
-	rs, err := r.DB.NamedExec(query, category)
-	if err != nil {
-		return nil, err
-	}
+	args = append(args, qArgs...)
+	args = append(args, category.ID)
+	query := fmt.Sprintf("UPDATE category %s, updated_at=now() WHERE id=?", q)
+	fmt.Println("query : ", query)
+	fmt.Println("args : ", args)
+
+	rs := r.DB.MustExec(query, args...)
 
 	insertId, err := rs.RowsAffected()
+	fmt.Println("inserted id ", insertId)
 	if err != nil {
 		return nil, err
 	}
-
+	if int(insertId) == 0 {
+		return nil, errors.New("data not found")
+	}
 	category.ID = int(insertId)
 
 	return &category, nil
 }
 
-func (r *CategoryRepositoryImpl) FindAll(ctx context.Context, request web.GetParamRequest) ([]*domain.Category, *domain.CategoryMeta, error) {
-	var page float64 = 1
-	if request.Page.Valid {
-		page = request.Page.Float64
-	}
-	query, count, totalPage := r.cekParam(request)
-	meta := domain.CategoryMeta{}
-	meta = domain.CategoryMeta{
-		Limit:     request.Limit.Float64,
-		Total:     count,
-		Page:      page,
-		TotalPage: totalPage,
-	}
-	// fmt.Println("query ", query)
+func (r *CategoryRepositoryImpl) FindData(ctx context.Context, filter domain.CategoryFilter, paginate model.PaginateParams) ([]*domain.Category, *model.PaginateParams, error) {
+	var args []interface{}
+	q, qArgs := r.generateWhereQuery(filter)
+
+	args = append(args, qArgs...)
+	args = append(args, filter.Sort, paginate.Limit, paginate.Offset)
+
+	query := fmt.Sprintf("SELECT id, name, description FROM category %s ORDER BY ? asc LIMIT ? OFFSET ? ", q)
+	fmt.Println("query : ", query)
+	fmt.Println("args : ", args)
 	categories := []*domain.Category{}
-	err := r.DB.Select(&categories, query)
+	err := r.DB.Select(&categories, query, args...)
 	if err != nil {
 		return nil, nil, err
 	}
-
+	count, err := r.getCountCategory(filter)
+	if err != nil {
+		return nil, nil, err
+	}
+	meta := model.PaginateParams{
+		Total: count,
+	}
 	return categories, &meta, nil
 }
 
-func (r *CategoryRepositoryImpl) cekParam(request web.GetParamRequest) (string, int, int) {
-	count, _ := r.getCountCategory("select count(id) from category")
-	q := "select id,name from category"
-	startDate, sort, query, queryCount := "", "id", "", ""
-	limit := 5
-	page := 1
-	totalPage := math.Ceil(float64(count) / float64(limit))
-	var offset float64 = (float64(page) - 1) * float64(limit)
-	sortValue := getValueEnv("SORT_CATEGORY_VALUE", "desc")
-	if request.Start.Valid {
-		if !request.End.Valid {
-			var star string = request.Start.Time.String()
-			t := star[0:10]
-			startDate = fmt.Sprintf("where created_at > '%s 00:00:00'", t)
-			queryCount = fmt.Sprintf("select count(id) from category where created_at > '%s 00:00:00'", t)
-			count, _ = r.getCountCategory(queryCount)
-
-		} else {
-			var star string = request.Start.Time.String()
-			var end string = request.End.Time.String()
-			t := star[0:10]
-			t2 := end[0:10]
-			startDate = fmt.Sprintf("where created_at > '%s 00:00:00' and created_at < '%s 00:00:00'", t, t2)
-			queryCount = fmt.Sprintf("select count(id) from category where created_at > '%s 00:00:00' and created_at < '%s 00:00:00'", t, t2)
-			count, _ = r.getCountCategory(queryCount)
-
-		}
+func (r *CategoryRepositoryImpl) generateWhereQuery(filter domain.CategoryFilter) (q string, args []interface{}) {
+	var condition []string
+	if filter.StartDate.Valid {
+		condition = append(condition, "created_at > ?")
+		args = append(args, filter.StartDate.Time.Format("2006-02-01"))
 	}
-	if request.Limit.Valid || request.Page.Valid {
-		if request.Limit.Valid && !request.Page.Valid {
-			limit = int(request.Limit.Float64)
-			totalPage = math.Ceil(float64(count) / request.Limit.Float64)
-			offset = float64((page - 1) * limit)
-		}
-		if !request.Limit.Valid && request.Page.Valid {
-			page = int(request.Page.Float64)
-			offset = float64((page - 1) * limit)
-		}
-		limit = int(request.Limit.Float64)
-		page = int(request.Page.Float64)
-		offset = float64((request.Page.Float64 - 1) * request.Limit.Float64)
+	if filter.EndDate.Valid {
+		condition = append(condition, "created_at < ?")
+		args = append(args, filter.EndDate.Time.Format("2006-01-02"))
 	}
-	if request.Sort.Valid {
-		sort = fmt.Sprintf(request.Sort.String)
+	if filter.Name.Valid {
+		condition = append(condition, "name LIKE ?")
+		args = append(args, fmt.Sprintf("%%%s%%", filter.Name.String))
 	}
-	if request.SortValue.Valid {
-		sortValue = fmt.Sprintf(request.SortValue.String)
+	if len(condition) > 0 {
+		q = fmt.Sprintf("WHERE %s", strings.Join(condition, " and "))
 	}
-
-	query = fmt.Sprintf("%s %s Order by %s %s LIMIT %d OFFSET %v", q, startDate, sort, sortValue, limit, offset)
-
-	return query, count, int(totalPage)
+	return
 }
 
-func (r *CategoryRepositoryImpl) getCountCategory(q string) (int, error) {
-	count := domain.CategoryMeta{}
-	err := r.DB.Get(&count.Total, q)
+func (r *CategoryRepositoryImpl) generateFieldQuery(cat domain.Category) (q string, args []interface{}) {
+	var condition []string
+	if cat.Name != "" {
+		condition = append(condition, "name=?")
+		args = append(args, cat.Name)
+	}
+	if cat.Description.Valid {
+		condition = append(condition, "description=?")
+		args = append(args, cat.Description.String)
+	}
+	if len(condition) > 0 {
+		q = fmt.Sprintf("SET %s", strings.Join(condition, " , "))
+	}
+	return
+}
+
+func (r *CategoryRepositoryImpl) getCountCategory(filter domain.CategoryFilter) (int, error) {
+	var args []interface{}
+	var count int
+	q, qArgs := r.generateWhereQuery(filter)
+	args = append(args, qArgs...)
+	fmt.Printf("service %+v \n", args...)
+
+	query := fmt.Sprintf("SELECT count(id) as total from category %s", q)
+	err := r.DB.Get(&count, query, args...)
 	if err != nil {
 		return 0, err
 	}
-	return count.Total, nil
-}
-
-func getValueEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
+	return count, nil
 }

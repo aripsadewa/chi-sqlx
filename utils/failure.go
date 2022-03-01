@@ -14,6 +14,20 @@ func (f *Failure) Error() string {
 	return fmt.Sprintf("%s : %s", http.StatusText(f.Code), f.Message)
 }
 
+func CekNilParameter(key, fallback string) string {
+	if key != "" {
+		return key
+	}
+	return fallback
+}
+
+func CekNulNumberRequest(key, fallback int64) int64 {
+	if key != 0 {
+		return key
+	}
+	return fallback
+}
+
 func BadRequest(err error) error {
 	if err != nil {
 		return &Failure{

@@ -25,55 +25,6 @@ func NewCategoryController(categoryService service.CategoryService, validate *va
 	}
 }
 
-func (c *CategoryControllerImpl) Create() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		categoryCreateRequest := web.CategoryCreateRequest{}
-
-		web.ReadFromRequestBody(r, &categoryCreateRequest)
-
-		err := c.Validate.Struct(categoryCreateRequest)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			erorResponse := web.ErrorResponse{
-				Code:   http.StatusBadRequest,
-				Status: http.StatusText(http.StatusBadRequest),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
-				},
-			}
-			web.WriteToResponseBody(w, erorResponse)
-			return
-		}
-		categoryResponse, err := c.CategoryService.Create(r.Context(), categoryCreateRequest)
-		fmt.Println(err)
-		if err != nil {
-			w.WriteHeader(utils.GetCode(err))
-			erorResponse := web.ErrorResponse{
-				Code:   utils.GetCode(err),
-				Status: http.StatusText(utils.GetCode(err)),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
-				},
-			}
-			web.WriteToResponseBody(w, erorResponse)
-			return
-		}
-
-		webResponse := web.WebResponse{
-			Code:   http.StatusOK,
-			Status: http.StatusText(http.StatusOK),
-			Data:   categoryResponse,
-		}
-
-		web.WriteToResponseBody(w, webResponse)
-
-	})
-}
-
 func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -81,77 +32,42 @@ func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 		web.ReadFromRequestBody(r, &categoryUpdateRequest)
 		err := c.Validate.Struct(categoryUpdateRequest)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			erorResponse := web.ErrorResponse{
-				Code:   http.StatusBadRequest,
-				Status: http.StatusText(http.StatusBadRequest),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
 			return
 		}
 
 		categoryId := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(categoryId)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			erorResponse := web.ErrorResponse{
-				Code:   http.StatusBadRequest,
-				Status: http.StatusText(http.StatusBadRequest),
-				Errors: []web.WebError{
-					{
-						Message: "param not int",
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: "param is not int",
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
-			return
-		}
-
-		categoryResponseService, err := c.CategoryService.FindById(r.Context(), id)
-		fmt.Println("response", categoryResponseService)
-		if err != nil {
-			w.WriteHeader(utils.GetCode(err))
-			erorResponse := web.ErrorResponse{
-				Code:   utils.GetCode(err),
-				Status: http.StatusText(utils.GetCode(err)),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
-				},
-			}
-			web.WriteToResponseBody(w, erorResponse)
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
 
 		categoryUpdateRequest.Id = id
 		categoryResponse, err := c.CategoryService.Update(r.Context(), categoryUpdateRequest)
 		if err != nil {
-			w.WriteHeader(utils.GetCode(err))
-			erorResponse := web.ErrorResponse{
-				Code:   utils.GetCode(err),
-				Status: http.StatusText(utils.GetCode(err)),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
 		categoryResponse.Id = id
-		webResponse := web.WebResponse{
-			Code:   http.StatusOK,
-			Status: http.StatusText(http.StatusOK),
-			Data:   categoryResponse,
-		}
-		web.WriteToResponseBody(w, webResponse)
+		web.WriteToResponseBody(w, http.StatusOK, http.StatusText(http.StatusOK), categoryResponse, nil, nil)
 
 	})
 }
@@ -162,88 +78,88 @@ func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 		categoryId := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(categoryId)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			erorResponse := web.ErrorResponse{
-				Code:   http.StatusBadRequest,
-				Status: http.StatusText(http.StatusBadRequest),
-				Errors: []web.WebError{
-					{
-						Message: "Param not int",
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: "param is not int",
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
 
 		categoryResponse, err := c.CategoryService.FindById(r.Context(), id)
 		if err != nil {
-			w.WriteHeader(utils.GetCode(err))
-			erorResponse := web.ErrorResponse{
-				Code:   utils.GetCode(err),
-				Status: http.StatusText(utils.GetCode(err)),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
-		webResponse := web.WebResponse{
-			Code:   http.StatusOK,
-			Status: http.StatusText(http.StatusOK),
-			Data:   categoryResponse,
-		}
-
-		web.WriteToResponseBody(w, webResponse)
-
+		web.WriteToResponseBody(w, http.StatusOK, http.StatusText(http.StatusOK), categoryResponse, nil, nil)
 	})
 }
 
 func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		categoryId := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(categoryId)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			erorResponse := web.ErrorResponse{
-				Code:   http.StatusBadRequest,
-				Status: http.StatusText(http.StatusBadRequest),
-				Errors: []web.WebError{
-					{
-						Message: "Param not int",
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: "param is not int",
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
-
 		resDelete, err := c.CategoryService.Delete(r.Context(), id)
-		if err != nil || resDelete == "" {
-			w.WriteHeader(utils.GetCode(err))
-			erorResponse := web.ErrorResponse{
-				Code:   utils.GetCode(err),
-				Status: http.StatusText(utils.GetCode(err)),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
+		if err != nil {
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
-		webResponse := web.WebResponse{
-			Code:   http.StatusOK,
-			Status: http.StatusText(http.StatusOK),
-			Data:   "Data Deleted",
-		}
+		web.WriteToResponseBody(w, http.StatusOK, http.StatusText(http.StatusOK), resDelete, nil, nil)
+	})
+}
 
-		web.WriteToResponseBody(w, webResponse)
+func (c *CategoryControllerImpl) Create() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		categoryCreateRequest := web.CategoryCreateRequest{}
+		web.ReadFromRequestBody(r, &categoryCreateRequest)
+
+		err := c.Validate.Struct(categoryCreateRequest)
+		if err != nil {
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
+				},
+			}
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
+			return
+		}
+		categoryResponse, err := c.CategoryService.Create(r.Context(), categoryCreateRequest)
+		fmt.Println(err)
+		if err != nil {
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
+				},
+			}
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
+			return
+		}
+		web.WriteToResponseBody(w, http.StatusOK, http.StatusText(http.StatusOK), categoryResponse, nil, nil)
 
 	})
 }
@@ -253,64 +169,38 @@ func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 		var decoder = schema.NewDecoder()
 		paramRequest := web.GetParamRequest{}
 		err := decoder.Decode(&paramRequest, r.URL.Query())
-		// r.Body.Read()
-		// fmt.Printf("value %s\n", reflect.TypeOf(r.URL.Query()))
-		// fmt.Printf("param %#v\n", paramRequest)
-		// fmt.Printf("param %v\n", paramRequest)
-		// fmt.Printf("param %+v\n", paramRequest)
-
+		fmt.Printf("request %+v \n", paramRequest)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			erorResponse := web.ErrorResponse{
-				Code:   http.StatusBadRequest,
-				Status: http.StatusText(http.StatusBadRequest),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
 			return
 		}
 		err = c.Validate.Struct(paramRequest)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			erorResponse := web.ErrorResponse{
-				Code:   http.StatusBadRequest,
-				Status: http.StatusText(http.StatusBadRequest),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
 			return
 		}
-		categoryResponses, meta, err := c.CategoryService.FindAll(r.Context(), paramRequest)
+		categoryResponses, metaData, err := c.CategoryService.FindAll(r.Context(), paramRequest)
 		if err != nil {
-			w.WriteHeader(utils.GetCode(err))
-			erorResponse := web.ErrorResponse{
-				Code:   utils.GetCode(err),
-				Status: http.StatusText(utils.GetCode(err)),
-				Errors: []web.WebError{
-					{
-						Message: utils.GetMessage(err),
-					},
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
 				},
 			}
-			web.WriteToResponseBody(w, erorResponse)
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
-		webResponse := web.GetAllCategory{
-			Code:     http.StatusOK,
-			Status:   http.StatusText(http.StatusOK),
-			Data:     categoryResponses,
-			MetaData: meta,
-		}
-
-		web.WriteToResponseBody(w, webResponse)
+		web.WriteToResponseBody(w, http.StatusOK, http.StatusText(http.StatusOK), categoryResponses, nil, metaData)
 
 	})
 }

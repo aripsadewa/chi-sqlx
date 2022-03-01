@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
+	"rest_api/model"
 	"rest_api/model/domain"
 	"rest_api/repository"
 	"rest_api/utils"
@@ -22,9 +24,9 @@ func NewCategoryService(categoryRepository repository.CategoryRepository) Catego
 
 func (s *CategoryServiceImpl) Create(ctx context.Context, request web.CategoryCreateRequest) (*web.CategoryResponse, error) {
 	// return nil, utils.BadRequest(errors.New("test error"))
-
 	category := domain.Category{
-		Name: request.Name,
+		Name:        request.Name,
+		Description: request.Description,
 	}
 
 	categories, err := s.CategoryRepository.Save(ctx, category)
@@ -32,7 +34,6 @@ func (s *CategoryServiceImpl) Create(ctx context.Context, request web.CategoryCr
 		return nil, utils.UnprocessableEntity(err)
 	}
 	res := web.ToCategoryResponse(*categories)
-	fmt.Println(res)
 	return res, nil
 }
 
@@ -45,52 +46,60 @@ func (s *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) (*we
 		return nil, utils.InternalServerError(err)
 
 	}
-
 	res := web.ToCategoryResponse(*category)
 	return res, nil
 }
 
 func (s *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) (string, error) {
-	status, err := s.CategoryRepository.Delete(ctx, categoryId)
-	if err != nil || int(status) == 0 {
+	_, err := s.CategoryRepository.Delete(ctx, categoryId)
+	if err != nil {
 
 		return "", utils.NotFoundError(err)
 	}
-	mes := fmt.Sprintf("%d not found", categoryId)
+	mes := fmt.Sprintf("category id %d is Deleted", categoryId)
 	return mes, nil
-
 }
 
 func (s *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUpdateRequest) (*web.CategoryResponse, error) {
 	category := domain.Category{
-		ID:   request.Id,
-		Name: request.Name,
+		ID:          request.Id,
+		Name:        request.Name,
+		Description: request.Description,
 	}
 	categories, err := s.CategoryRepository.Update(ctx, category)
-
 	if err != nil {
-
-		return nil, utils.UnprocessableEntity(err)
+		return nil, utils.NotFoundError(err)
 	}
-
 	res := web.ToCategoryResponse(*categories)
 	return res, nil
 }
 
-func (s *CategoryServiceImpl) FindAll(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.MetaData, error) {
-	// param := domain.CategoryMeta{
-	// 	Start:     request.Start,
-	// 	End:       request.End,
-	// 	Page:      request.Page,
-	// 	Limit:     request.Limit,
-	// 	Sort:      request.Sort,
-	// 	SortValue: request.SortValue,
-	// }
-	categories, metaData, err := s.CategoryRepository.FindAll(ctx, request)
-	if err != nil || metaData == nil {
+func (s *CategoryServiceImpl) FindAll(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.PaginateMetaData, error) {
+	fmt.Printf("service %+v \n", request)
+
+	filterPayload := domain.CategoryFilter{
+		StartDate: request.Start,
+		EndDate:   request.End,
+		Name:      request.Name,
+	}
+	filterPayload.SortValue = utils.CekNilParameter(request.SortValue.String, utils.EnvConfigs.SortCategoryValue)
+	filterPayload.Sort = utils.CekNilParameter(request.Sort.String, "id")
+
+	paginateParam := model.PaginateParams{
+		Offset: int(utils.CekNulNumberRequest(request.Page.Int64, 1)-1) * int(utils.CekNulNumberRequest(request.Limit.Int64, 5)),
+		Limit:  int(utils.CekNulNumberRequest(request.Limit.Int64, 5)),
+	}
+	categories, meta, err := s.CategoryRepository.FindData(ctx, filterPayload, paginateParam)
+	if err != nil {
 		return nil, nil, utils.NotFoundError(err)
 	}
-	res := web.ToCategoryMeta(*metaData)
+	resCategories := web.ToCategoriesResponse(categories)
 
-	return web.AllCategoryResponse(categories), res, nil
+	resPaginateMetadata := web.PaginateMetaData{
+		Page:      float64(utils.CekNulNumberRequest(request.Page.Int64, 1)),
+		Limit:     float64(utils.CekNulNumberRequest(request.Limit.Int64, 5)),
+		TotalPage: int(math.Ceil(float64(meta.Total) / float64(paginateParam.Limit))),
+		Total:     meta.Total,
+	}
+	return resCategories, &resPaginateMetadata, nil
 }
