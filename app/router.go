@@ -11,9 +11,12 @@ func NewRouter(r chi.Router, cat controller.CategoryController) {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome v1"))
 	})
-	r.Post("/save", cat.Create())
-	r.Get("/{id}", cat.FindById())
-	r.Put("/{id}", cat.Update())
-	r.Delete("/{id}", cat.Delete())
-	r.Get("/cat", cat.FindAll())
+	r.Route("/category", func(r chi.Router) {
+		r.Post("/create", cat.Create())
+		r.Get("/{id}", cat.FindById())
+		r.Put("/{id}", cat.Update())
+		r.Delete("/{id}", cat.Delete())
+		r.Get("/", cat.FindAll())
+	})
+
 }

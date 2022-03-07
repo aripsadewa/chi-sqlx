@@ -5,9 +5,9 @@ import (
 )
 
 type Category struct {
-	ID          int         `db:"id"`
-	Name        string      `db:"name"`
-	Description null.String `db:"description"`
+	ID          int    `db:"id"`
+	Name        string `db:"name"`
+	Description string `db:"description"`
 }
 
 type CategoryFilter struct {

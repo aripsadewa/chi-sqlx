@@ -2,14 +2,12 @@ package web
 
 import (
 	"rest_api/model/domain"
-
-	"gopkg.in/guregu/null.v4"
 )
 
 type CategoryResponse struct {
-	Id          int         `json:"id"`
-	Name        string      `json:"name"`
-	Description null.String `json:"description"`
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 func ToCategoryResponse(category domain.Category) *CategoryResponse {

@@ -141,9 +141,9 @@ func (r *CategoryRepositoryImpl) generateFieldQuery(cat domain.Category) (q stri
 		condition = append(condition, "name=?")
 		args = append(args, cat.Name)
 	}
-	if cat.Description.Valid {
+	if cat.Description != "" {
 		condition = append(condition, "description=?")
-		args = append(args, cat.Description.String)
+		args = append(args, cat.Description)
 	}
 	if len(condition) > 0 {
 		q = fmt.Sprintf("SET %s", strings.Join(condition, " , "))

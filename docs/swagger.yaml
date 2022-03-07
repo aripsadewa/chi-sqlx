@@ -1,0 +1,135 @@
+basePath: /api/v1
+definitions:
+  web.CategoryCreateRequest:
+    properties:
+      description:
+        maxLength: 100
+        minLength: 5
+        type: string
+      name:
+        maxLength: 100
+        minLength: 5
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  web.CategoryUpdateRequest:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /category:
+    get:
+      consumes:
+      - application/json
+      description: get categories
+      parameters:
+      - description: page
+        in: path
+        name: page
+        required: true
+        type: integer
+      - description: limit
+        in: path
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: Show an Category
+      tags:
+      - categories
+  /category/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Create a new category with the input paylod
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: Delete category
+      tags:
+      - categories
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: Show an Category
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/json
+      description: Update a category with the input paylod
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Category
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/web.CategoryUpdateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Update a category
+      tags:
+      - categories
+  /category/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new category with the input paylod
+      parameters:
+      - description: Create Category
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/web.CategoryCreateRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new category
+      tags:
+      - categories
+swagger: "2.0"

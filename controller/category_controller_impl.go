@@ -25,6 +25,15 @@ func NewCategoryController(categoryService service.CategoryService, validate *va
 	}
 }
 
+// UpdateCategory godoc
+// @Summary Update a category
+// @Description Update a category with the input paylod
+// @Tags categories
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Category ID"
+// @Param category body web.CategoryUpdateRequest true "Update Category"
+// @Router /category/{id} [put]
 func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -72,6 +81,14 @@ func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 	})
 }
 
+// Show Category godoc
+// @Summary      Show an Category
+// @Description  get string by ID
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Category ID"
+// @Router       /category/{id} [get]
 func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -103,6 +120,14 @@ func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 	})
 }
 
+// DeleteCategory godoc
+// @Summary Delete category
+// @Description Create a new category with the input paylod
+// @Tags categories
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Category ID"
+// @Router /category/{id} [delete]
 func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		categoryId := chi.URLParam(r, "id")
@@ -132,6 +157,14 @@ func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 	})
 }
 
+// CreateCategory godoc
+// @Summary Create a new category
+// @Description Create a new category with the input paylod
+// @Tags categories
+// @Accept  json
+// @Produce  json
+// @Param category body web.CategoryCreateRequest true "Create Category"
+// @Router /category/create [post]
 func (c *CategoryControllerImpl) Create() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		categoryCreateRequest := web.CategoryCreateRequest{}
@@ -164,6 +197,15 @@ func (c *CategoryControllerImpl) Create() http.HandlerFunc {
 	})
 }
 
+// Show Category godoc
+// @Summary      Show an Category
+// @Description  get categories
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        page   path      int  true  "page"
+// @Param        limit   path      int  true  "limit"
+// @Router       /category [get]
 func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var decoder = schema.NewDecoder()

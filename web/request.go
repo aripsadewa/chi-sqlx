@@ -7,15 +7,16 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
+// Create category the model for an category
 type CategoryCreateRequest struct {
-	Name        string      `validate:"required,min=5,max=100" json:"name"`
-	Description null.String `validate:"required,min=5,max=100" json:"description"`
+	Name        string `validate:"required,min=5,max=100" json:"name"`
+	Description string `validate:"required,min=5,max=100" json:"description"`
 }
 
 type CategoryUpdateRequest struct {
-	Id          int         `json:"id"`
-	Name        string      `json:"name"`
-	Description null.String `json:"description"`
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type GetParamRequest struct {
