@@ -203,8 +203,9 @@ func (c *CategoryControllerImpl) Create() http.HandlerFunc {
 // @Tags         categories
 // @Accept       json
 // @Produce      json
-// @Param        page   path      int  true  "page"
-// @Param        limit   path      int  true  "limit"
+// @Param        name  query string  false  "name"
+// @Param        limit query int  false  "limit"
+// @Param        page query int  false  "page"
 // @Router       /category [get]
 func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

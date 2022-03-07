@@ -11,20 +11,25 @@ type CategoryResponse struct {
 }
 
 func ToCategoryResponse(category domain.Category) *CategoryResponse {
-	return &CategoryResponse{
-		Id:          category.ID,
-		Name:        category.Name,
-		Description: category.Description,
+	categoryResponse := &CategoryResponse{
+		Id:   category.ID,
+		Name: category.Name,
 	}
+	if category.Description.Valid {
+		categoryResponse.Description = category.Description.String
+	}
+	return categoryResponse
 }
 
 func ToCategoriesResponse(category []*domain.Category) []*CategoryResponse {
 	mapData := make([]*CategoryResponse, 0)
 	for _, el := range category {
 		responItem := &CategoryResponse{
-			Id:          el.ID,
-			Name:        el.Name,
-			Description: el.Description,
+			Id:   el.ID,
+			Name: el.Name,
+		}
+		if el.Description.Valid {
+			responItem.Description = el.Description.String
 		}
 		mapData = append(mapData, responItem)
 	}

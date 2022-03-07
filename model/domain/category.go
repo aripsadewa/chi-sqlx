@@ -1,13 +1,15 @@
 package domain
 
 import (
+	"database/sql"
+
 	"gopkg.in/guregu/null.v4"
 )
 
 type Category struct {
-	ID          int    `db:"id"`
-	Name        string `db:"name"`
-	Description string `db:"description"`
+	ID          int            `db:"id"`
+	Name        string         `db:"name"`
+	Description sql.NullString `db:"description"`
 }
 
 type CategoryFilter struct {

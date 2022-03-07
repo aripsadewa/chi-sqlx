@@ -40,18 +40,22 @@ const docTemplate = `{
                 "summary": "Show an Category",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "page",
-                        "name": "page",
-                        "in": "path",
-                        "required": true
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
                         "description": "limit",
                         "name": "limit",
-                        "in": "path",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "page",
+                        "name": "page",
+                        "in": "query"
                     }
                 ],
                 "responses": {}

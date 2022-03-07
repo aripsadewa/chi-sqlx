@@ -24,9 +24,13 @@ func NewCategoryService(categoryRepository repository.CategoryRepository) Catego
 
 func (s *CategoryServiceImpl) Create(ctx context.Context, request web.CategoryCreateRequest) (*web.CategoryResponse, error) {
 	// return nil, utils.BadRequest(errors.New("test error"))
+
 	category := domain.Category{
-		Name:        request.Name,
-		Description: request.Description,
+		Name: request.Name,
+		Description: sql.NullString{
+			Valid:  request.Description != "",
+			String: request.Description,
+		},
 	}
 
 	categories, err := s.CategoryRepository.Save(ctx, category)
@@ -62,9 +66,12 @@ func (s *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) (strin
 
 func (s *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUpdateRequest) (*web.CategoryResponse, error) {
 	category := domain.Category{
-		ID:          request.Id,
-		Name:        request.Name,
-		Description: request.Description,
+		ID:   request.Id,
+		Name: request.Name,
+		Description: sql.NullString{
+			Valid:  request.Description != "",
+			String: request.Description,
+		},
 	}
 	categories, err := s.CategoryRepository.Update(ctx, category)
 	if err != nil {

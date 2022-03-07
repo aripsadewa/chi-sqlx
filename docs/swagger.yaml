@@ -43,15 +43,17 @@ paths:
       - application/json
       description: get categories
       parameters:
-      - description: page
-        in: path
-        name: page
-        required: true
-        type: integer
+      - description: name
+        in: query
+        name: name
+        type: string
       - description: limit
-        in: path
+        in: query
         name: limit
-        required: true
+        type: integer
+      - description: page
+        in: query
+        name: page
         type: integer
       produces:
       - application/json
