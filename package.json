@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/findarip/chi-sqlx/issues"
   },
-  "homepage": "https://github.com/findarip/chi-sqlx#readme"
+  "homepage": "https://github.com/findarip/chi-sqlx#readme",
+  "directories": {
+    "doc": "docs"
+  }
 }
