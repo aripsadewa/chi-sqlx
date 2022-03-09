@@ -104,7 +104,9 @@ func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
-
+		ctx := r.Context().Value("username")
+		fmt.Println("token ", ctx)
+		// v := ctx.Value("token").(string)
 		categoryResponse, err := c.CategoryService.FindById(r.Context(), id)
 		if err != nil {
 			erorResponse := []web.WebError{

@@ -18,6 +18,20 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// type M map[string]interface{}
+
+// type MyClaims struct {
+// 	jwt.StandardClaims
+// 	Username string `json:"Username"`
+// 	Email    string `json:"Email"`
+// 	Group    string `json:"Group"`
+// }
+
+// var APPLICATION_NAME = "My Simple JWT App"
+// var LOGIN_EXPIRATION_DURATION = time.Duration(1) * time.Hour
+// var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
+// var JWT_SIGNATURE_KEY = []byte(utils.EnvConfigs.SecretApp)
+
 // @title Swagger Example API
 // @version 1.0
 // @description This is a sample server Petstore server.
@@ -32,6 +46,7 @@ import (
 
 // @host localhost:3000
 // @BasePath /api/v1
+
 func main() {
 	utils.InitiEnvConfigs()
 	db, err := sqlx.Connect("mysql", "root:@(localhost:3306)/rest-pzn")
@@ -44,12 +59,18 @@ func main() {
 	catRepo := repository.NewCategoryRepository(db)
 	catService := service.NewCategoryService(catRepo)
 	cat := controller.NewCategoryController(catService, validator.New())
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	user := controller.NewUserController(userService)
 	r := chi.NewRouter()
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome"))
+		// r.Post("/login1", user.Login())
 	})
 	r.Route("/api/v1", func(r chi.Router) {
-		app.NewRouter(r, cat)
+		app.NewCategoryRouter(r, cat)
+		app.NewUserRouter(r, user)
+
 	})
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:3000/swagger/doc.json"), //The url pointing to API definition

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"log"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -9,8 +10,10 @@ import (
 var EnvConfigs *AppConfig
 
 type AppConfig struct {
-	AppPort           string `mapstructure:"APP_PORT"`
-	SortCategoryValue string `mapstructure:"SORT_CATEGORY_VALUE"`
+	AppPort           string        `mapstructure:"APP_PORT"`
+	SortCategoryValue string        `mapstructure:"SORT_CATEGORY_VALUE"`
+	SecretApp         string        `mapstructure:"SECRET_APP"`
+	ExpToken          time.Duration `mapstructure:"EXP_TOKEN"`
 }
 
 func InitiEnvConfigs() {

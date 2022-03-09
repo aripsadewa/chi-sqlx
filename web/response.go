@@ -1,6 +1,7 @@
 package web
 
 import (
+	"rest_api/model"
 	"rest_api/model/domain"
 )
 
@@ -8,6 +9,18 @@ type CategoryResponse struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+type UserResponse struct {
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Username string `json:"username"`
+	Token    string `json:"token"`
+	Expired  string `json:"expired"`
 }
 
 func ToCategoryResponse(category domain.Category) *CategoryResponse {
@@ -19,6 +32,14 @@ func ToCategoryResponse(category domain.Category) *CategoryResponse {
 		categoryResponse.Description = category.Description.String
 	}
 	return categoryResponse
+}
+
+func ToUserResponse(user model.User) *UserResponse {
+	userResponse := &UserResponse{
+		Id:       user.ID,
+		Username: user.Username,
+	}
+	return userResponse
 }
 
 func ToCategoriesResponse(category []*domain.Category) []*CategoryResponse {

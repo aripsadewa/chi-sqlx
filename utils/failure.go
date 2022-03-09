@@ -48,6 +48,16 @@ func NotFoundError(err error) error {
 	return nil
 }
 
+func UnauthorizedError(err error) error {
+	if err != nil {
+		return &Failure{
+			Code:    http.StatusUnauthorized,
+			Message: err.Error(),
+		}
+	}
+	return nil
+}
+
 func UnprocessableEntity(err error) error {
 	if err != nil {
 		return &Failure{

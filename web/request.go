@@ -12,6 +12,11 @@ type CategoryCreateRequest struct {
 	Description string `validate:"required,min=5,max=100" json:"description"`
 }
 
+type UserCreateRequest struct {
+	Username string `validate:"required,min=1,max=100" json:"username"`
+	Password string `validate:"required,min=1,max=100" json:"password"`
+}
+
 type CategoryUpdateRequest struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`
