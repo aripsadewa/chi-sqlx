@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 	"rest_api/service"
 	"rest_api/utils"
 	"rest_api/web"
@@ -36,6 +37,16 @@ func NewCategoryController(categoryService service.CategoryService, validate *va
 // @Router /category/{id} [put]
 func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context().Value("username")
+		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
+
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "Variable not string", nil)
+			return
+		}
+		if ctx != "test2" {
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "User Unautorized", nil)
+			return
+		}
 
 		categoryUpdateRequest := web.CategoryUpdateRequest{}
 		web.ReadFromRequestBody(r, &categoryUpdateRequest)
@@ -92,6 +103,22 @@ func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		// fmt.Println("username ", r.Context().Value("username").(string))
+		// fmt.Println("role ", r.Context().Value("role"))
+
+		ctx := r.Context().Value("username")
+		// fmt.Println("test ", reflect.TypeOf(ctx).Name())
+		// fmt.Println("test ", reflect.String)
+		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
+			erorResponse := []web.WebError{
+				{
+					Message: "Unautorized",
+				},
+			}
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
+			return
+		}
+
 		categoryId := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(categoryId)
 		if err != nil {
@@ -104,8 +131,7 @@ func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
 			return
 		}
-		ctx := r.Context().Value("username")
-		fmt.Println("token ", ctx)
+
 		// v := ctx.Value("token").(string)
 		categoryResponse, err := c.CategoryService.FindById(r.Context(), id)
 		if err != nil {
@@ -132,6 +158,17 @@ func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 // @Router /category/{id} [delete]
 func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context().Value("username")
+		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
+
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "Variable not string", nil)
+			return
+		}
+		if ctx != "test2" {
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "User Unautorized", nil)
+			return
+		}
+
 		categoryId := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(categoryId)
 		if err != nil {
@@ -169,6 +206,17 @@ func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 // @Router /category/create [post]
 func (c *CategoryControllerImpl) Create() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context().Value("username")
+		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
+			//buat func
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "Variable not string", nil)
+			return
+		}
+		if ctx != "test2" {
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "User Unautorized", nil)
+			return
+		}
+
 		categoryCreateRequest := web.CategoryCreateRequest{}
 		web.ReadFromRequestBody(r, &categoryCreateRequest)
 
@@ -211,6 +259,17 @@ func (c *CategoryControllerImpl) Create() http.HandlerFunc {
 // @Router       /category [get]
 func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context().Value("username")
+		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
+			erorResponse := []web.WebError{
+				{
+					Message: "Unautorized",
+				},
+			}
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
+			return
+		}
+
 		var decoder = schema.NewDecoder()
 		paramRequest := web.GetParamRequest{}
 		err := decoder.Decode(&paramRequest, r.URL.Query())

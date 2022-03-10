@@ -49,6 +49,7 @@ func (s *UserServiceImpl) Login(ctx context.Context, request web.UserCreateReque
 		return nil, err
 	}
 	data := map[string]string{
+		"role":     fmt.Sprint(user.ID),
 		"username": user.Username,
 	}
 	token, err := utils.GenerateToken(utils.EnvConfigs.SecretApp, utils.EnvConfigs.ExpToken, data)

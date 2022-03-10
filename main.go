@@ -18,20 +18,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// type M map[string]interface{}
-
-// type MyClaims struct {
-// 	jwt.StandardClaims
-// 	Username string `json:"Username"`
-// 	Email    string `json:"Email"`
-// 	Group    string `json:"Group"`
-// }
-
-// var APPLICATION_NAME = "My Simple JWT App"
-// var LOGIN_EXPIRATION_DURATION = time.Duration(1) * time.Hour
-// var JWT_SIGNING_METHOD = jwt.SigningMethodHS256
-// var JWT_SIGNATURE_KEY = []byte(utils.EnvConfigs.SecretApp)
-
 // @title Swagger Example API
 // @version 1.0
 // @description This is a sample server Petstore server.

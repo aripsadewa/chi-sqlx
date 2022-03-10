@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"rest_api/web"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -29,22 +31,27 @@ func TokenVerify(next http.Handler) http.Handler {
 		token := r.Header.Get("Authorization")
 		parts := strings.Split(token, " ")
 		if token == "" {
-			http.Error(w, "Invalid token", http.StatusBadRequest)
+			http.Error(w, "token not found", http.StatusUnauthorized)
 			return
 		}
 		claims, err := ExtractClaims(EnvConfigs.SecretApp, parts[1])
 		if err != nil {
-			http.Error(w, "Unautorized", http.StatusUnauthorized)
+			erorResponse := []web.WebError{
+				{
+					Message: GetMessage(err),
+				},
+			}
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
 			return
 		}
 		data := claims["Data"]
+
 		result := map[string]interface{}{}
 		encoded, _ := json.Marshal(data)
 		json.Unmarshal(encoded, &result)
-		var ctx context.Context
+		ctx := r.Context()
 		for key, val := range result {
-			// c.Set(key, val)
-			ctx = context.WithValue(r.Context(), key, val)
+			ctx = context.WithValue(ctx, key, val)
 		}
 
 		r = r.WithContext(ctx)

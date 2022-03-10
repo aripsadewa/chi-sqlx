@@ -27,7 +27,7 @@ func NewCategoryRouter(r chi.Router, cat controller.CategoryController) {
 }
 
 func NewUserRouter(r chi.Router, user controller.UserController) {
-	// r.Post("/register", user.Register())
+	r.Post("/register", user.Register())
 	r.Post("/login", user.Login())
 	r.Get("/user", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome user"))
