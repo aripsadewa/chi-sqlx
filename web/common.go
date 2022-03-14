@@ -13,6 +13,7 @@ type WebResponse struct {
 }
 
 type PaginateMetaData struct {
+	Offset    int     `json:"offset"`
 	Limit     float64 `json:"limit"`
 	Total     int     `json:"total"`
 	Page      float64 `json:"page"`

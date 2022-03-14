@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"rest_api/model"
 	"rest_api/model/domain"
+	"rest_api/web"
 )
 
 type CategoryRepository interface {
@@ -12,5 +12,6 @@ type CategoryRepository interface {
 	Delete(ctx context.Context, categoryId int) (int, error)
 	FindById(ctx context.Context, categoryId int) (*domain.Category, error)
 	// FindAll(ctx context.Context, request web.ValidateParamRequest) ([]*domain.Category, *model.PaginateParams, error)
-	FindData(ctx context.Context, filter domain.CategoryFilter, paginate model.PaginateParams) ([]*domain.Category, *model.PaginateParams, error)
+	FindData(ctx context.Context, filter domain.CategoryFilter, paginate *web.PaginateMetaData) ([]*domain.Category, error)
+	GetCountCategory(filter domain.CategoryFilter) (int, error)
 }

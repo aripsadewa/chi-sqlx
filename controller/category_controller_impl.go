@@ -103,12 +103,7 @@ func (c *CategoryControllerImpl) Update() http.HandlerFunc {
 func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// fmt.Println("username ", r.Context().Value("username").(string))
-		// fmt.Println("role ", r.Context().Value("role"))
-
 		ctx := r.Context().Value("username")
-		// fmt.Println("test ", reflect.TypeOf(ctx).Name())
-		// fmt.Println("test ", reflect.String)
 		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
 			erorResponse := []web.WebError{
 				{
@@ -273,7 +268,6 @@ func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 		var decoder = schema.NewDecoder()
 		paramRequest := web.GetParamRequest{}
 		err := decoder.Decode(&paramRequest, r.URL.Query())
-		fmt.Printf("request %+v \n", paramRequest)
 		if err != nil {
 			erorResponse := []web.WebError{
 				{
@@ -293,7 +287,8 @@ func (c *CategoryControllerImpl) FindAll() http.HandlerFunc {
 			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
 			return
 		}
-		categoryResponses, metaData, err := c.CategoryService.FindAll(r.Context(), paramRequest)
+		// categoryResponses, metaData, err := c.CategoryService.FindAll(r.Context(), paramRequest)
+		categoryResponses, metaData, err := c.CategoryService.FindData(r.Context(), paramRequest)
 		if err != nil {
 			erorResponse := []web.WebError{
 				{

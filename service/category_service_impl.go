@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"math"
-	"rest_api/model"
 	"rest_api/model/domain"
 	"rest_api/repository"
 	"rest_api/utils"
 	"rest_api/web"
+	"sync"
 )
 
 type CategoryServiceImpl struct {
@@ -81,9 +82,91 @@ func (s *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUp
 	return res, nil
 }
 
-func (s *CategoryServiceImpl) FindAll(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.PaginateMetaData, error) {
-	fmt.Printf("service %+v \n", request)
+func (s *CategoryServiceImpl) FindData(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.PaginateMetaData, error) {
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
 
+	chanelCategory := make(chan []*domain.Category)
+	chanelCountCategory := make(chan int)
+	done := make(chan bool)
+	chanelErr := make(chan error)
+
+	defer close(chanelCategory)
+	defer close(chanelCountCategory)
+	defer close(done)
+	defer close(chanelErr)
+
+	go func() {
+		wg.Wait()
+		done <- true
+	}()
+
+	go s.findAll(ctx, request, wg, chanelCategory, chanelErr)
+
+	filterPayload, _ := s.getFilterPayload(request)
+
+	go s.getMetaCategoryService(filterPayload, request, wg, chanelCountCategory, chanelErr)
+
+	categoriesData := make([]*domain.Category, 0)
+	countData := 0
+	var err error
+L:
+	for {
+		select {
+		case cData := <-chanelCategory:
+			categoriesData = cData
+		case coData := <-chanelCountCategory:
+			countData = coData
+		case coErr := <-chanelErr:
+			err = coErr
+		case <-done:
+			break L
+		}
+	}
+
+	if err != nil {
+		return nil, nil, utils.InternalServerError(err)
+	}
+	resCategories := web.ToCategoriesResponse(categoriesData)
+
+	resPaginateMetadata := web.PaginateMetaData{
+		Page:      float64(utils.CekNulNumberRequest(request.Page.Int64, 1)),
+		Limit:     float64(utils.CekNulNumberRequest(request.Limit.Int64, 5)),
+		TotalPage: int(math.Ceil(float64(countData) / float64(utils.CekNulNumberRequest(request.Limit.Int64, 5)))),
+		Total:     countData,
+	}
+
+	return resCategories, &resPaginateMetadata, nil
+}
+
+func (s *CategoryServiceImpl) findAll(ctx context.Context, request web.GetParamRequest, wg *sync.WaitGroup, chanelCategory chan []*domain.Category, chanErr chan error) {
+	defer wg.Done()
+
+	filterPayload, paginateParam := s.getFilterPayload(request)
+	categories, _ := s.CategoryRepository.FindData(ctx, filterPayload, paginateParam)
+	chanErr <- errors.New("error coy")
+
+	// if err != nil {
+	// }
+
+	chanelCategory <- categories
+
+}
+
+func (s *CategoryServiceImpl) getMetaCategoryService(cty domain.CategoryFilter, request web.GetParamRequest, wg *sync.WaitGroup, chanelCount chan int, chanErr chan error) {
+	defer wg.Done()
+
+	count, err := s.CategoryRepository.GetCountCategory(cty)
+	if err != nil {
+		chanErr <- err
+
+	}
+
+	chanelCount <- count
+
+}
+
+func (s *CategoryServiceImpl) getFilterPayload(request web.GetParamRequest) (domain.CategoryFilter, *web.PaginateMetaData) {
 	filterPayload := domain.CategoryFilter{
 		StartDate: request.Start,
 		EndDate:   request.End,
@@ -92,21 +175,12 @@ func (s *CategoryServiceImpl) FindAll(ctx context.Context, request web.GetParamR
 	filterPayload.SortValue = utils.CekNilParameter(request.SortValue.String, utils.EnvConfigs.SortCategoryValue)
 	filterPayload.Sort = utils.CekNilParameter(request.Sort.String, "id")
 
-	paginateParam := model.PaginateParams{
-		Offset: int(utils.CekNulNumberRequest(request.Page.Int64, 1)-1) * int(utils.CekNulNumberRequest(request.Limit.Int64, 5)),
-		Limit:  int(utils.CekNulNumberRequest(request.Limit.Int64, 5)),
-	}
-	categories, meta, err := s.CategoryRepository.FindData(ctx, filterPayload, paginateParam)
-	if err != nil {
-		return nil, nil, utils.NotFoundError(err)
-	}
-	resCategories := web.ToCategoriesResponse(categories)
+	paginateParam := &web.PaginateMetaData{}
 
-	resPaginateMetadata := web.PaginateMetaData{
-		Page:      float64(utils.CekNulNumberRequest(request.Page.Int64, 1)),
-		Limit:     float64(utils.CekNulNumberRequest(request.Limit.Int64, 5)),
-		TotalPage: int(math.Ceil(float64(meta.Total) / float64(paginateParam.Limit))),
-		Total:     meta.Total,
-	}
-	return resCategories, &resPaginateMetadata, nil
+	paginateParam.Offset = int(utils.CekNulNumberRequest(request.Page.Int64, 1)-1) * int(utils.CekNulNumberRequest(request.Limit.Int64, 5))
+	paginateParam.Page = float64(utils.CekNulNumberRequest(request.Page.Int64, 1))
+	paginateParam.Limit = float64(utils.CekNulNumberRequest(request.Limit.Int64, 5))
+	fmt.Printf("meta %+v ", paginateParam)
+
+	return filterPayload, paginateParam
 }

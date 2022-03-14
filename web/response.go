@@ -45,14 +45,14 @@ func ToUserResponse(user model.User) *UserResponse {
 func ToCategoriesResponse(category []*domain.Category) []*CategoryResponse {
 	mapData := make([]*CategoryResponse, 0)
 	for _, el := range category {
-		responItem := &CategoryResponse{
+		responItem := CategoryResponse{
 			Id:   el.ID,
 			Name: el.Name,
 		}
 		if el.Description.Valid {
 			responItem.Description = el.Description.String
 		}
-		mapData = append(mapData, responItem)
+		mapData = append(mapData, &responItem)
 	}
 	return mapData
 }

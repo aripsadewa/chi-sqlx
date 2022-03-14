@@ -10,5 +10,6 @@ type CategoryService interface {
 	Update(ctx context.Context, request web.CategoryUpdateRequest) (*web.CategoryResponse, error)
 	FindById(ctx context.Context, categoryId int) (*web.CategoryResponse, error)
 	Delete(ctx context.Context, categoryId int) (string, error)
-	FindAll(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.PaginateMetaData, error)
+	// FindAll(ctx context.Context, request web.GetParamRequest, wg *sync.WaitGroup) ([]*web.CategoryResponse, error)
+	FindData(ctx context.Context, request web.GetParamRequest) ([]*web.CategoryResponse, *web.PaginateMetaData, error)
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"rest_api/model"
 	"rest_api/model/domain"
+	"rest_api/web"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -72,13 +72,10 @@ func (r *CategoryRepositoryImpl) Update(ctx context.Context, category domain.Cat
 	args = append(args, qArgs...)
 	args = append(args, category.ID)
 	query := fmt.Sprintf("UPDATE category %s, updated_at=now() WHERE id=?", q)
-	fmt.Println("query : ", query)
-	fmt.Println("args : ", args)
 
 	rs := r.DB.MustExec(query, args...)
 
 	insertId, err := rs.RowsAffected()
-	fmt.Println("inserted id ", insertId)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +87,7 @@ func (r *CategoryRepositoryImpl) Update(ctx context.Context, category domain.Cat
 	return &category, nil
 }
 
-func (r *CategoryRepositoryImpl) FindData(ctx context.Context, filter domain.CategoryFilter, paginate model.PaginateParams) ([]*domain.Category, *model.PaginateParams, error) {
+func (r *CategoryRepositoryImpl) FindData(ctx context.Context, filter domain.CategoryFilter, paginate *web.PaginateMetaData) ([]*domain.Category, error) {
 	var args []interface{}
 	q, qArgs := r.generateWhereQuery(filter)
 
@@ -98,21 +95,12 @@ func (r *CategoryRepositoryImpl) FindData(ctx context.Context, filter domain.Cat
 	args = append(args, filter.Sort, paginate.Limit, paginate.Offset)
 
 	query := fmt.Sprintf("SELECT id, name, description FROM category %s ORDER BY ? asc LIMIT ? OFFSET ? ", q)
-	fmt.Println("query : ", query)
-	fmt.Println("args : ", args)
 	categories := []*domain.Category{}
 	err := r.DB.Select(&categories, query, args...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	count, err := r.getCountCategory(filter)
-	if err != nil {
-		return nil, nil, err
-	}
-	meta := model.PaginateParams{
-		Total: count,
-	}
-	return categories, &meta, nil
+	return categories, nil
 }
 
 func (r *CategoryRepositoryImpl) generateWhereQuery(filter domain.CategoryFilter) (q string, args []interface{}) {
@@ -151,12 +139,12 @@ func (r *CategoryRepositoryImpl) generateFieldQuery(cat domain.Category) (q stri
 	return
 }
 
-func (r *CategoryRepositoryImpl) getCountCategory(filter domain.CategoryFilter) (int, error) {
+func (r *CategoryRepositoryImpl) GetCountCategory(filter domain.CategoryFilter) (int, error) {
 	var args []interface{}
 	var count int
 	q, qArgs := r.generateWhereQuery(filter)
 	args = append(args, qArgs...)
-	fmt.Printf("service %+v \n", args...)
+	// fmt.Printf("service %+v \n", args...)
 
 	query := fmt.Sprintf("SELECT count(id) as total from category %s", q)
 	err := r.DB.Get(&count, query, args...)
