@@ -26,72 +26,6 @@ func NewCategoryController(categoryService service.CategoryService, validate *va
 	}
 }
 
-// UpdateCategory godoc
-// @Summary Update a category
-// @Description Update a category with the input paylod
-// @Tags categories
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Category ID"
-// @Param category body web.CategoryUpdateRequest true "Update Category"
-// @Router /category/{id} [put]
-func (c *CategoryControllerImpl) Update() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context().Value("username")
-		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
-
-			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "Variable not string", nil)
-			return
-		}
-		if ctx != "test2" {
-			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "User Unautorized", nil)
-			return
-		}
-
-		categoryUpdateRequest := web.CategoryUpdateRequest{}
-		web.ReadFromRequestBody(r, &categoryUpdateRequest)
-		err := c.Validate.Struct(categoryUpdateRequest)
-		if err != nil {
-			erorResponse := []web.WebError{
-				{
-					Message: utils.GetMessage(err),
-				},
-			}
-			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
-			return
-		}
-
-		categoryId := chi.URLParam(r, "id")
-		id, err := strconv.Atoi(categoryId)
-		if err != nil {
-			erorResponse := []web.WebError{
-				{
-					Message: "param is not int",
-				},
-			}
-			resCode := utils.GetCode(err)
-			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
-			return
-		}
-
-		categoryUpdateRequest.Id = id
-		categoryResponse, err := c.CategoryService.Update(r.Context(), categoryUpdateRequest)
-		if err != nil {
-			erorResponse := []web.WebError{
-				{
-					Message: utils.GetMessage(err),
-				},
-			}
-			resCode := utils.GetCode(err)
-			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
-			return
-		}
-		categoryResponse.Id = id
-		web.WriteToResponseBody(w, http.StatusOK, http.StatusText(http.StatusOK), categoryResponse, nil, nil)
-
-	})
-}
-
 // Show Category godoc
 // @Summary      Show an Category
 // @Description  get string by ID
@@ -143,6 +77,69 @@ func (c *CategoryControllerImpl) FindById() http.HandlerFunc {
 	})
 }
 
+// UpdateCategory godoc
+// @Summary Update a category
+// @Description Update a category with the input paylod
+// @Tags categories
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Category ID"
+// @Param category body web.CategoryUpdateRequest true "Update Category"
+// @Router /category/{id} [put]
+
+func (c *CategoryControllerImpl) Update() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context().Value("username")
+		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
+
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "Variable not string", nil)
+			return
+		}
+
+		categoryUpdateRequest := web.CategoryUpdateRequest{}
+		web.ReadFromRequestBody(r, &categoryUpdateRequest)
+		err := c.Validate.Struct(categoryUpdateRequest)
+		if err != nil {
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
+				},
+			}
+			web.WriteToResponseBody(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest), nil, erorResponse, nil)
+			return
+		}
+
+		categoryId := chi.URLParam(r, "id")
+		id, err := strconv.Atoi(categoryId)
+		if err != nil {
+			erorResponse := []web.WebError{
+				{
+					Message: "param is not int",
+				},
+			}
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
+			return
+		}
+
+		categoryUpdateRequest.Id = id
+		categoryResponse, err := c.CategoryService.Update(r.Context(), categoryUpdateRequest)
+		if err != nil {
+			erorResponse := []web.WebError{
+				{
+					Message: utils.GetMessage(err),
+				},
+			}
+			resCode := utils.GetCode(err)
+			web.WriteToResponseBody(w, resCode, http.StatusText(resCode), nil, erorResponse, nil)
+			return
+		}
+		categoryResponse.Id = id
+		web.WriteToResponseBody(w, http.StatusOK, http.StatusText(http.StatusOK), categoryResponse, nil, nil)
+
+	})
+}
+
 // DeleteCategory godoc
 // @Summary Delete category
 // @Description Create a new category with the input paylod
@@ -157,10 +154,6 @@ func (c *CategoryControllerImpl) Delete() http.HandlerFunc {
 		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
 
 			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "Variable not string", nil)
-			return
-		}
-		if ctx != "test2" {
-			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "User Unautorized", nil)
 			return
 		}
 
@@ -205,10 +198,6 @@ func (c *CategoryControllerImpl) Create() http.HandlerFunc {
 		if ctx == nil || reflect.TypeOf(ctx).Kind() != reflect.String {
 			//buat func
 			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "Variable not string", nil)
-			return
-		}
-		if ctx != "test2" {
-			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, "User Unautorized", nil)
 			return
 		}
 

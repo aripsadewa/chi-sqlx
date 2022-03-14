@@ -17,8 +17,9 @@ func NewCategoryRouter(r chi.Router, cat controller.CategoryController) {
 	r.Route("/category", func(r chi.Router) {
 		r.Use(middleware.Logger)
 		r.Use(utils.TokenVerify)
-		r.Post("/create", cat.Create())
 		r.Get("/{id}", cat.FindById())
+
+		r.Post("/", cat.Create())
 		r.Put("/{id}", cat.Update())
 		r.Delete("/{id}", cat.Delete())
 		r.Get("/", cat.FindAll())

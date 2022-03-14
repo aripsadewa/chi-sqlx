@@ -14,6 +14,10 @@ type AppConfig struct {
 	SortCategoryValue string        `mapstructure:"SORT_CATEGORY_VALUE"`
 	SecretApp         string        `mapstructure:"SECRET_APP"`
 	ExpToken          time.Duration `mapstructure:"EXP_TOKEN"`
+	DbUser            string        `mapstructure:"DB_USER"`
+	DbPass            string        `mapstructure:"DB_PASS"`
+	DbHost            string        `mapstructure:"DB_HOST"`
+	DbName            string        `mapstructure:"DB_NAME"`
 }
 
 func InitiEnvConfigs() {

@@ -31,7 +31,12 @@ func TokenVerify(next http.Handler) http.Handler {
 		token := r.Header.Get("Authorization")
 		parts := strings.Split(token, " ")
 		if token == "" {
-			http.Error(w, "token not found", http.StatusUnauthorized)
+			erorResponse := []web.WebError{
+				{
+					Message: "token not found",
+				},
+			}
+			web.WriteToResponseBody(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized), nil, erorResponse, nil)
 			return
 		}
 		claims, err := ExtractClaims(EnvConfigs.SecretApp, parts[1])

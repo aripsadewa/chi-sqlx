@@ -10,6 +10,8 @@ type Category struct {
 	ID          int            `db:"id"`
 	Name        string         `db:"name"`
 	Description sql.NullString `db:"description"`
+	CreatedAt   sql.NullString `db:"created_at"`
+	UpdatedAt   sql.NullString `db:"updated_at"`
 }
 
 type CategoryFilter struct {
